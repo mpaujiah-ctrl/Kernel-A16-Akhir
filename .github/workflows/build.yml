@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: JoK3rLeE/android_kernel_xiaomi_sm8150
-        ref: 17.0-cepheus
+        ref: 16.0-cepheus
         fetch-depth: 1
 
     - name: Setup Build Environment
