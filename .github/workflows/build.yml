@@ -116,10 +116,10 @@ jobs:
          cat AnyKernel3/anykernel.sh
          cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
          cp kernel/out/arch/arm64/boot/Image kernel-pure.img
-         cd AnyKernel3 && zip -r9 ../cepheus-kernel-plain.zip * -x README
+         cd AnyKernel3 && zip -r9 ../cepheus-kernel.zip * -x README
 
     - name: Upload Kernel Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: cepheus-kernel-plain
-        path: cepheus-kernel-plain.zip
+        name: cepheus-kernel
+        path: cepheus-kernel.zip
