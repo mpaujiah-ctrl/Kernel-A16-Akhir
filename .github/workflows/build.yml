@@ -121,5 +121,5 @@ jobs:
       with:
           name: cepheus-kernel
           path: |
-            cepheus_kernel.zip
-            kernel/out/arch/arm64/boot/Image.gz-dtb  
+              kernel/cepheus_kernel.zip
+              kernel/out/arch/arm64/boot/Image.gz-dtb  
