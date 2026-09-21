@@ -26,6 +26,12 @@ jobs:
           git fetch --depth=1 origin 683b437c39781770eeb9e916ee365848e73ae6a1
           git checkout FETCH_HEAD
     
+    - name: Keluarin device andromeda yang dtsi-nya syntax error (bukan device kita, ikut ke-build bareng karena CONFIG_BUILD_ARM64_DT_OVERLAY)
+      working-directory: kernel
+      run: |
+          sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
+          grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
+    
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
           sudo apt update
@@ -46,8 +52,8 @@ jobs:
           echo "=== Verifikasi ==="
           toolchain/clang/bin/clang --version
 
-          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"
-   
+          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
+    
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
