@@ -106,14 +106,13 @@ jobs:
           ls out/arch/arm64/boot/Image
     
     - name: Pack AnyKernel3
-      working-directory: kernel
       run: |
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3
           cp anykernel.sh AnyKernel3/anykernel.sh
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
-          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cp out/arch/arm64/boot/Image kernel-pure.img
+          cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+          cp kernel/out/arch/arm64/boot/Image kernel-pure.img
           cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
 
     - name: Upload hasil build
