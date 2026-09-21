@@ -13,36 +13,31 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: JoK3rLeE/android_kernel_xiaomi_sm8150
-        ref: 16.0-cepheus
+        ref: 17.0-cepheus
         fetch-depth: 1
 
-    - name: Setup Build Environment
+    - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential bc bison flex libssl-dev libncurses-dev \
-          libelf-dev zip unzip curl git ccache repo rawtherapee
+          sudo apt update
+          sudo apt install -y bc bison flex libssl-dev libelf-dev build-essential gcc-aarch64-linux-gnu
 
-    - name: Download Toolchains (Clang & GCC)
-      run: |
-        mkdir -p $GITHUB_WORKSPACE/toolchains
-        cd $GITHUB_WORKSPACE/toolchains
+          echo "=== Download clang-r563880c (AOSP resmi, cocok sama build string kernel yang jalan) via sparse git clone di commit spesifik ==="
+          mkdir -p toolchain
+          git clone --filter=blob:none --sparse --no-checkout https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang_repo
+          cd clang_repo
+          git fetch --depth=1 origin f8439f0628d799092dd07df440a6334cab28939c
+          git checkout FETCH_HEAD
+          git sparse-checkout set clang-r563880c
+          cd ..
+          ls clang_repo/
+          mv clang_repo/clang-r563880c toolchain/clang
+          rm -rf clang_repo
 
-        # Clone Clang r563880c via AOSP release tag khusus (android-16.0.0_r4)
-        git clone \
-          --depth=1 \
-          -b android-16.0.0_r4 \
-          https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 \
-          android-clang
+          echo "=== Verifikasi ==="
+          toolchain/clang/bin/clang --version
 
-        # Pindahkan folder clang-r563880c
-        mkdir clang
-        cp -r android-clang/clang-r563880c/* clang/
-        rm -rf android-clang
-
-        # Download GCC 64-bit & 32-bit Cross-Compilers
-        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android12-release --depth=1 gcc64
-        git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android12-release --depth=1 gcc32
-    
+          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"
+   
     - name: Build Kernel
       run: |
         export PATH="$GITHUB_WORKSPACE/toolchains/clang/bin:$GITHUB_WORKSPACE/toolchains/gcc64/bin:$GITHUB_WORKSPACE/toolchains/gcc32/bin:$PATH"
