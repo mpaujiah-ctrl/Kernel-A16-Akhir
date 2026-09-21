@@ -37,6 +37,11 @@ jobs:
           toolchain/clang/bin/clang --version
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"
+
+          # Pindahkan folder clang-r563880c
+          mkdir clang
+          cp -r android-clang/clang-r563880c/* clang/
+          rm -rf android-clang
    
     - name: Build Kernel
       run: |
