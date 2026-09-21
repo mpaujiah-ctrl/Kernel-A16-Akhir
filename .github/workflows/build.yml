@@ -108,8 +108,8 @@ jobs:
     - name: Pack AnyKernel3
       working-directory: kernel
       run: |
-          cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cp kernel/out/arch/arm64/boot/Image kernel-pure.img
+          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+          cp out/arch/arm64/boot/Image kernel-pure.img
           cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
 
     - name: Upload hasil build
