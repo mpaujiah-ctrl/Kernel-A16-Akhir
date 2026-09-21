@@ -30,7 +30,7 @@ jobs:
           git sparse-checkout set clang-r563880c
           # Pindahkan folder clang-r563880c
           mkdir clang
-          cp -r android-clang/clang-r563880c/* clang/
+          cp -r clang_repo/clang-r563880c clang/
           rm -rf android-clang
           
           echo "=== Verifikasi ==="
