@@ -82,6 +82,14 @@ jobs:
           sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-DRAGON"/' out/.config
           grep "CONFIG_LOCALVERSION" out/.config
     
+    - name: Clone AnyKernel3
+      run: |
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3
+          echo "=== Ganti anykernel.sh & ak3-core.sh bawaan (generic, buat OMAP/tuna) dengan punya InfiniR (proven working buat cepheus) ==="
+          cp anykernel.sh AnyKernel3/anykernel.sh
+          cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
+          cat AnyKernel3/anykernel.sh
+    
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -107,12 +115,7 @@ jobs:
     
     - name: Pack AnyKernel3
       run: |
-          git clone --depth=1 https://github.com/osm0sis/AnyKernel3
-          cp anykernel.sh AnyKernel3/anykernel.sh
-          cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
-          cat AnyKernel3/anykernel.sh
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cp kernel/out/arch/arm64/boot/Image kernel-pure.img
           cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
 
     - name: Upload hasil build
@@ -120,5 +123,4 @@ jobs:
       with:
           name: cepheus-kernel
           path: |
-              kernel/cepheus_kernel.zip
-              kernel/out/arch/arm64/boot/Image.gz-dtb  
+            cepheus_kernel.zip 
