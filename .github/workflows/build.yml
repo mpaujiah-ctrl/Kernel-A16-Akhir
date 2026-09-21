@@ -28,20 +28,16 @@ jobs:
           git fetch --depth=1 origin f8439f0628d799092dd07df440a6334cab28939c
           git checkout FETCH_HEAD
           git sparse-checkout set clang-r563880c
-          cd ..
-          ls clang_repo/
-          mv clang_repo/clang-r563880c toolchain/clang
-          rm -rf clang_repo
-
+          # Pindahkan folder clang-r563880c
+          mkdir clang
+          cp -r android-clang/clang-r563880c/* clang/
+          rm -rf android-clang
+          
           echo "=== Verifikasi ==="
           toolchain/clang/bin/clang --version
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"
 
-          # Pindahkan folder clang-r563880c
-          mkdir clang
-          cp -r android-clang/clang-r563880c/* clang/
-          rm -rf android-clang
    
     - name: Build Kernel
       run: |
