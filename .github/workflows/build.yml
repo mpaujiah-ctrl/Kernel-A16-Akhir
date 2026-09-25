@@ -1,4 +1,4 @@
-name: Build Kernel Cepheus A16 Jokerlee
+name: Build Kernel Cepheus A16 Jokerlee PIN
 
 on:
   workflow_dispatch:
