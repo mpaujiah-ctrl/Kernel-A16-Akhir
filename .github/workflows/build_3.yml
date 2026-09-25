@@ -70,16 +70,29 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
     
+    - name: Cek disk & bebasin ruang
+      run: |
+        df -h
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+        df -h
+    
     - name: Set up Swap Space
       uses: pierotofy/set-swap-space@master
       with:
         swap-size-gb: 10
-        run: swapon --show; free -h
     
-    - name: Cek OOM
-      if: failure()
-      run: sudo dmesg | grep -iE "out of memory|killed process" | tail
-    
+    - name: Verifikasi swap
+      run: |
+        swapon --show
+        free -h
+        df -h
+        
+    - name: Verifikasi swap & config
+      working-directory: kernel
+      run: |
+          free -h
+          swapon --show
+          grep -E "^CONFIG_(LTO|THINLTO|CFI)" out/.config
     
     - name: Build kernel
       working-directory: kernel
@@ -104,7 +117,10 @@ jobs:
           ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
     
-    
+    - name: Cek OOM
+      if: always()
+      run: sudo dmesg | grep -iE "out of memory|killed process" | tail -30
+   
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
