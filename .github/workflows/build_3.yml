@@ -70,29 +70,13 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
     
-    - name: Cek disk & bebasin ruang
-      run: |
-        df -h
-        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
-        df -h
-    
-    - name: Set up Swap Space
-      uses: pierotofy/set-swap-space@master
-      with:
-        swap-size-gb: 10
-    
-    - name: Verifikasi swap
-      run: |
-        swapon --show
-        free -h
-        df -h
-        
-    - name: Verifikasi swap & config
+    - name: Matikan LTO total
       working-directory: kernel
       run: |
-          free -h
-          swapon --show
-          grep -E "^CONFIG_(LTO|THINLTO|CFI)" out/.config
+          scripts/config --file out/.config \
+            -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
+            --set-val LTO_NONE y
+          make O=out ARCH=arm64 olddefconfig
     
     - name: Build kernel
       working-directory: kernel
@@ -112,14 +96,10 @@ jobs:
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-               -j2 Image.gz-dtb
-
+               -j"$(nproc --all)" Image.gz-dtb
+               
           ls out/arch/arm64/boot/Image.gz-dtb
-          ls out/arch/arm64/boot/Image
-    
-    - name: Cek OOM
-      if: always()
-      run: sudo dmesg | grep -iE "out of memory|killed process" | tail -30
+          ls out/arch/arm64/boot/Image   
    
     - name: Pack AnyKernel3
       run: |
@@ -131,4 +111,4 @@ jobs:
       with:
           name: cepheus-kernel
           path: |
-            cepheus_kernel.zip 
+            cepheus_kernel.zip
