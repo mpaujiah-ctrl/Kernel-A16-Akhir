@@ -76,6 +76,11 @@ jobs:
         swap-size-gb: 10
         run: swapon --show; free -h
     
+    - name: Cek OOM
+      if: failure()
+      run: sudo dmesg | grep -iE "out of memory|killed process" | tail
+    
+    
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -99,9 +104,6 @@ jobs:
           ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
     
-    - name: Cek OOM
-      if: failure()
-      run: sudo dmesg | grep -iE "out of memory|killed process" | tail
     
     - name: Pack AnyKernel3
       run: |
