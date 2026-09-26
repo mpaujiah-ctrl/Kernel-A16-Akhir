@@ -28,7 +28,7 @@ jobs:
           sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
           grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
     
-    - name: Ganti file logika dtc dengan versi dari 16.0-cepheus (dtc 17.0-cepheus gagal parse plugin/overlay &label{})
+    - name: Ganti file logika dtc
       working-directory: kernel
       run: |
           rm -rf /tmp/dtc16
