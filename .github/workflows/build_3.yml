@@ -80,6 +80,13 @@ jobs:
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(LTO|THINLTO)" out/.config
     
+    - name: Aktifkan SDCARD_FS
+      working-directory: kernel
+      run: |
+          scripts/config --file out/.config -e SDCARD_FS
+          make O=out ARCH=arm64 olddefconfig
+          grep SDCARD_FS out/.config
+    
     - name: Build kernel
       working-directory: kernel
       run: |
