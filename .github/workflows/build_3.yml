@@ -106,6 +106,7 @@ jobs:
           export OBJCOPY=llvm-objcopy
           export OBJDUMP=llvm-objdump
           export STRIP=llvm-strip
+          scripts/config --file out/.config -d CONFIG_SND_SOC_TAS256X
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
