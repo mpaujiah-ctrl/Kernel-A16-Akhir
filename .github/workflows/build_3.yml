@@ -70,13 +70,15 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
     
-    - name: Matikan LTO total
+    - name: Ganti ke ThinLTO
       working-directory: kernel
       run: |
           scripts/config --file out/.config \
-            -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
-            --set-val LTO_NONE y
+            -d LTO_NONE \
+            -d LTO_CLANG \
+            -e THINLTO
           make O=out ARCH=arm64 olddefconfig
+          grep -E "^CONFIG_(LTO|THINLTO)" out/.config
     
     - name: Build kernel
       working-directory: kernel
