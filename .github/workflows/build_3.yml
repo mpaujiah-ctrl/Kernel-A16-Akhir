@@ -20,17 +20,7 @@ jobs:
            
     - name: Clone kernel source (ikut update branch)
       run: |
-          git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel   
-    
-    - name: Ganti file logika dtc punya Jokerlee
-      working-directory: kernel
-      run: |
-          rm -rf /tmp/dtc16
-          git clone --depth=1 -b 16.0-cepheus "https://github.com/JoK3rLeE/android_kernel_xiaomi_sm8150" /tmp/dtc16
-          for f in checks.c dtc-lexer.l dtc-lexer.lex.c_shipped dtc-parser.tab.c_shipped dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-            cp "/tmp/dtc16/scripts/dtc/$f" "scripts/dtc/$f"
-          done
-          rm -rf /tmp/dtc16 
+          git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel     
     
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
