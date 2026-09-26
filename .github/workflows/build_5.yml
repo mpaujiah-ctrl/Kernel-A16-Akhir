@@ -75,7 +75,7 @@ jobs:
     - name: Update localversion
       working-directory: kernel
       run: |
-          sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-QUICK"/' out/.config
+          sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-DEVS"/' out/.config
           grep "CONFIG_LOCALVERSION" out/.config
     
     - name: Clone AnyKernel3
