@@ -123,11 +123,11 @@ jobs:
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-               -j2 Image.gz-dtb
+               -j2 Image.gz-dtb cepheus-sm8150-overlay.dtbo
                
           ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
-          find out/arch/arm64/boot/dts -iname "*.dtbo"
+          ls out/arch/arm64/boot/dts/qcom/cepheus-sm8150-overlay.dtbo
     
     - name: Cek OOM
       if: always()
