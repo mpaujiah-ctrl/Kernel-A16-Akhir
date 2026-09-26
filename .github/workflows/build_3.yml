@@ -20,13 +20,12 @@ jobs:
            
     - name: Clone kernel source (ikut update branch)
       run: |
-          git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel     
-    
+          git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel       
+   
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
           sudo apt update
           sudo apt install -y bc bison flex libssl-dev libelf-dev build-essential gcc-aarch64-linux-gnu
-
           echo "=== Download clang-r563880c (AOSP resmi, cocok sama build string kernel yang jalan) via sparse git clone di commit spesifik ==="
           mkdir -p toolchain
           git clone --filter=blob:none --sparse --no-checkout https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 clang_repo
@@ -38,10 +37,8 @@ jobs:
           ls clang_repo/
           mv clang_repo/clang-r563880c toolchain/clang
           rm -rf clang_repo
-
           echo "=== Verifikasi ==="
           toolchain/clang/bin/clang --version
-
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
     
     - name: Merge defconfig (persis seperti ROM)
@@ -70,16 +67,6 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
     
-    - name: Set up Swap Space
-      uses: pierotofy/set-swap-space@master
-      with:
-        swap-size-gb: 10
-
-    - name: Verifikasi swap
-      run: |
-          swapon --show
-          free -h
-
     - name: Ganti ke ThinLTO
       working-directory: kernel
       run: |
@@ -89,14 +76,14 @@ jobs:
             -e THINLTO
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(LTO|THINLTO)" out/.config
-
+    
     - name: Aktifkan SDCARD_FS
       working-directory: kernel
       run: |
           scripts/config --file out/.config -e SDCARD_FS
           make O=out ARCH=arm64 olddefconfig
           grep SDCARD_FS out/.config
-
+    
     - name: Fix TAS2557 reset GPIO
       working-directory: kernel
       run: |
@@ -119,35 +106,26 @@ jobs:
           export OBJCOPY=llvm-objcopy
           export OBJDUMP=llvm-objdump
           export STRIP=llvm-strip
-
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-               -j2 Image.gz-dtb cepheus-sm8150-overlay.dtbo
+               -j"$(nproc --all)" Image.gz-dtb dtbo.img
                
           ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
-          ls out/arch/arm64/boot/dts/qcom/cepheus-sm8150-overlay.dtbo
-    
-    - name: Cek OOM
-      if: always()
-      run: sudo dmesg | grep -iE "out of memory|killed process" | tail -30
-
+          ls out/arch/arm64/boot/dtbo.img
+   
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
+          cp kernel/out/arch/arm64/boot/dtbo.img dtbo.img
           cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
-
-    - name: Upload hasil build (boot)
+    
+    - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
           name: cepheus-kernel
           path: |
             cepheus_kernel.zip
-
-    - name: Upload dtbo (flash manual via fastboot)
-      uses: actions/upload-artifact@v4
-      with:
-          name: cepheus-dtbo
-          path: |
-            kernel/out/arch/arm64/boot/dts/qcom/cepheus-sm8150-overlay.dtbo
+            kernel/out/arch/arm64/boot/Image.gz-dtb
+            dtbo.img
