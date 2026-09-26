@@ -94,6 +94,14 @@ jobs:
             --set-val LTO_NONE y
           make O=out ARCH=arm64 olddefconfig
     
+    - name: Fix TAS2557 reset GPIO
+      working-directory: kernel
+      run: |
+          sed -i 's|//ti,cdc-reset-gpio|ti,cdc-reset-gpio|' \
+            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi
+          grep -n "cdc-reset-gpio" \
+            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi
+    
     - name: Build kernel
       working-directory: kernel
       run: |
