@@ -86,6 +86,14 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh    
     
+    - name: Matikan LTO total
+      working-directory: kernel
+      run: |
+          scripts/config --file out/.config \
+            -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
+            --set-val LTO_NONE y
+          make O=out ARCH=arm64 olddefconfig
+    
     - name: Build kernel
       working-directory: kernel
       run: |
