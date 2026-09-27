@@ -126,7 +126,18 @@ jobs:
           echo "=== Setelah enable ==="
           grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934" out/.config || true
 
-          
+    - name: Force use TAS2557 dai-links for Cepheus
+      working-directory: kernel
+      run: |
+          echo "=== Sebelum fix ==="
+          grep -n "tas256x ASI1\|quat_mi2s_rx_tas2557" techpack/audio/asoc/sm8150.c | head -20
+    
+          # Ganti hardcoded tas256x menjadi tas2557 di dai-link yang bermasalah
+          sed -i 's|tas256x.1-004c|tas2557.1-004c|g' techpack/audio/asoc/sm8150.c
+          sed -i 's|"tas256x ASI1"|"tas2557 ASI1"|g' techpack/audio/asoc/sm8150.c
+    
+          echo "=== Setelah fix ==="
+          grep -n "tas2557 ASI1\|tas256x ASI1" techpack/audio/asoc/sm8150.c | head -20     
     
     - name: Build kernel
       working-directory: kernel
