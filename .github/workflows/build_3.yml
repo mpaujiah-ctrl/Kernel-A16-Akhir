@@ -41,6 +41,45 @@ jobs:
           toolchain/clang/bin/clang --version
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
     
+    - name: Ganti dtc ke versi upstream + fix yamltree
+      working-directory: kernel
+      run: |
+        set -e
+    
+        # 1. Ambil source dtc dari upstream resmi
+        rm -rf /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
+    
+        # 2. Timpa file yang namanya cocok di scripts/dtc/
+        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
+          fname=$(basename "$f")
+          if [ -f "/tmp/dtc-upstream/$fname" ]; then
+            cp "/tmp/dtc-upstream/$fname" "$f"
+          fi
+        done
+        rm -rf /tmp/dtc-upstream
+    
+        # 3. Generate ulang lexer & parser (flex/bison sudah tersedia dari step Install toolchain)
+        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
+        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
+        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
+        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
+        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
+    
+        # 4. Stub yamltree.c (dtc.c upstream manggil dt_to_yaml, kernel lama nggak punya file ini)
+        cat > scripts/dtc/yamltree.c << 'CEOF'
+        #include <stdio.h>
+        #include <stdlib.h>
+    
+        struct dt_info;
+    
+        void dt_to_yaml(FILE *outf, struct dt_info *dti) {}
+        CEOF
+    
+        # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
+        sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
+        grep -A1 "dtc-objs" scripts/dtc/Makefile
+    
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
@@ -80,76 +119,8 @@ jobs:
       run: |
           scripts/config --file out/.config -e SDCARD_FS
           make O=out ARCH=arm64 olddefconfig
-          grep SDCARD_FS out/.config
-    
-    - name: Fix TAS2557 reset GPIO (force & verify)
-      working-directory: kernel
-      run: |
-          FILE="arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi"
-          
-          echo "=== Sebelum ==="
-          grep -n -A15 "tas2557@4c" "$FILE"
-          
-          # Uncomment kalau masih di-comment
-          sed -i 's|//[[:space:]]*ti,cdc-reset-gpio|ti,cdc-reset-gpio|g' "$FILE"
-          
-          # Kalau property belum ada sama sekali, tambahkan
-          if ! grep -q "ti,cdc-reset-gpio" "$FILE"; then
-            sed -i '/compatible = "ti,tas2557";/a\		ti,cdc-reset-gpio = <\&tlmm 59 0>;' "$FILE"
-          fi
-          
-          echo "=== Sesudah ==="
-          grep -n -A15 "tas2557@4c" "$FILE"
-    
-    - name: Fix duplicate Quaternary MI2S dai-link (sm8150.c)
-      working-directory: kernel
-      run: |
-          sed -i '6236,6270d' techpack/audio/asoc/sm8150.c
-          sed -i '/\.stream_name = "Voice Stub",/i\
-          /* Voice Stub */\
-          \t\t{\
-          \t\t\t.name = "Voice Stub",' techpack/audio/asoc/sm8150.c
-                grep -c "Quaternary MI2S_RX Hostless Playback" techpack/audio/asoc/sm8150.c
-    
-    - name: Check & enable TAS / Audio configs
-      working-directory: kernel
-      run: |
-          echo "=== Cek config TAS & Audio ==="
-          grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934|PAHU|TAVIL" out/.config || true
-
-          echo "=== DAI name di sm8150.c ==="
-          grep -n "tas256x\|tas2557\|ASI1" techpack/audio/asoc/sm8150.c | head -30
-          
-          echo "=== Node amp di DT Cepheus ==="
-          grep -n -A15 -B5 "tas\|2557\|256x\|cdc-reset" \
-            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/*.dtsi
-          
-          # Aktifkan yang biasanya dibutuhkan Cepheus
-          scripts/config --file out/.config \
-            -e SND_SOC_TAS2557 \
-            -e SND_SOC_TAS256X \
-            -e SND_SOC_WCD934X \
-            -e SND_SOC_WCD9XXX \
-            -e SND_SOC_SM8150
-          
-          make O=out ARCH=arm64 olddefconfig
-          
-          echo "=== Setelah enable ==="
-          grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934" out/.config || true
-
-    - name: Force use TAS2557 dai-links for Cepheus
-      working-directory: kernel
-      run: |
-          echo "=== Sebelum fix ==="
-          grep -n "tas256x ASI1\|quat_mi2s_rx_tas2557" techpack/audio/asoc/sm8150.c | head -20
-    
-          # Ganti hardcoded tas256x menjadi tas2557 di dai-link yang bermasalah
-          sed -i 's|tas256x.1-004c|tas2557.1-004c|g' techpack/audio/asoc/sm8150.c
-          sed -i 's|"tas256x ASI1"|"tas2557 ASI1"|g' techpack/audio/asoc/sm8150.c
-    
-          echo "=== Setelah fix ==="
-          grep -n "tas2557 ASI1\|tas256x ASI1" techpack/audio/asoc/sm8150.c | head -20     
-    
+          grep SDCARD_FS out/.config    
+        
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -178,13 +149,13 @@ jobs:
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
           cp kernel/out/arch/arm64/boot/dtbo.img dtbo.img
-          cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
+          cd AnyKernel3 && zip -r9 ../cepheus_CrDroid.zip * -x README
     
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
-          name: cepheus-kernel
+          name: cepheus-CrDroid
           path: |
-            cepheus_kernel.zip
+            cepheus_CrDroid.zip
             kernel/out/arch/arm64/boot/Image.gz-dtb
             dtbo.img
