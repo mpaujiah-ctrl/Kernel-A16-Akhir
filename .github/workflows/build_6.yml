@@ -27,15 +27,19 @@ jobs:
           sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
           grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
     
-    - name: Ganti file logika dtc punya Jokerlee
+    - name: Install flex dan bison
+      run: sudo apt-get update && sudo apt-get install -y flex bison
+    
+    - name: Ganti file logika dtc Jokerlee
       working-directory: kernel
       run: |
-          rm -rf /tmp/dtc-upstream
-          git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
-          for f in checks.c dtc-lexer.l dtc-lexer.lex.c_shipped dtc-parser.tab.c_shipped dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-            cp "/tmp/dtc-upstream/$f" "scripts/dtc/$f"
-          done
-          rm -rf /tmp/dtc-upstream  
+        rm -rf /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
+        for f in checks.c dtc-lexer.l dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
+          cp "/tmp/dtc-upstream/$f" "scripts/dtc/$f"
+        done
+        rm -f scripts/dtc/dtc-lexer.lex.c_shipped scripts/dtc/dtc-parser.tab.c_shipped scripts/dtc/dtc-parser.tab.h_shipped
+        rm -rf /tmp/dtc-upstream
     
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
@@ -91,8 +95,8 @@ jobs:
           scripts/config --file out/.config \
             -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
             --set-val LTO_NONE y
-          make O=out ARCH=arm64 olddefconfig  
-    
+          make O=out ARCH=arm64 olddefconfig      
+  
     - name: Build kernel
       working-directory: kernel
       run: |
