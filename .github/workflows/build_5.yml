@@ -27,17 +27,7 @@ jobs:
       run: |
           sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
           grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
-    
-    - name: Ganti file logika dtc punya Jokerlee
-      working-directory: kernel
-      run: |
-          rm -rf /tmp/dtc16
-          git clone --depth=1 -b 16.0-cepheus "https://github.com/JoK3rLeE/android_kernel_xiaomi_sm8150" /tmp/dtc16
-          for f in checks.c dtc-lexer.l dtc-lexer.lex.c_shipped dtc-parser.tab.c_shipped dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-            cp "/tmp/dtc16/scripts/dtc/$f" "scripts/dtc/$f"
-          done
-          rm -rf /tmp/dtc16   
-    
+        
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
           sudo apt update
@@ -59,6 +49,45 @@ jobs:
           toolchain/clang/bin/clang --version
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
+    
+    - name: Ganti dtc ke versi upstream + fix yamltree
+      working-directory: kernel
+      run: |
+        set -e
+    
+        # 1. Ambil source dtc dari upstream resmi
+        rm -rf /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/mpaujiah-ctrl/dtc_mainstream" /tmp/dtc-upstream
+    
+        # 2. Timpa file yang namanya cocok di scripts/dtc/
+        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
+          fname=$(basename "$f")
+          if [ -f "/tmp/dtc-upstream/$fname" ]; then
+            cp "/tmp/dtc-upstream/$fname" "$f"
+          fi
+        done
+        rm -rf /tmp/dtc-upstream
+    
+        # 3. Generate ulang lexer & parser (flex/bison sudah tersedia dari step Install toolchain)
+        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
+        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
+        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
+        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
+        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
+    
+        # 4. Stub yamltree.c (dtc.c upstream manggil dt_to_yaml, kernel lama nggak punya file ini)
+        cat > scripts/dtc/yamltree.c << 'CEOF'
+        #include <stdio.h>
+        #include <stdlib.h>
+    
+        struct dt_info;
+    
+        void dt_to_yaml(FILE *outf, struct dt_info *dti) {}
+        CEOF
+    
+        # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
+        sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
+        grep -A1 "dtc-objs" scripts/dtc/Makefile
     
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
@@ -93,15 +122,7 @@ jobs:
             -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
             --set-val LTO_NONE y
           make O=out ARCH=arm64 olddefconfig
-    
-    - name: Fix TAS2557 reset GPIO
-      working-directory: kernel
-      run: |
-          sed -i 's|//ti,cdc-reset-gpio|ti,cdc-reset-gpio|' \
-            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi
-          grep -n "cdc-reset-gpio" \
-            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi
-    
+        
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -128,11 +149,11 @@ jobs:
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
+          cd AnyKernel3 && zip -r9 ../cepheus_DEVS.zip * -x README
 
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
-          name: cepheus-kernel
+          name: cepheus-DEVS
           path: |
-            cepheus_kernel.zip
+            cepheus_DEVS.zip
