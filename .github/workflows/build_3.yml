@@ -80,6 +80,17 @@ jobs:
         sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
         grep -A1 "dtc-objs" scripts/dtc/Makefile
     
+    - name: Buat fragment config KSU + SUSFS
+      working-directory: kernel
+      run: |
+        cat > audio_extra.config << 'EOF'
+        CONFIG_SND_SOC_TAS256X=n
+        CONFIG_TAS256X_CODEC=n
+        CONFIG_TAS256X_REGMAP=n
+        CONFIG_TAS25XX_ALGO=n
+        EOF
+        cat audio_extra.config
+    
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
@@ -89,6 +100,7 @@ jobs:
             arch/arm64/configs/vendor/sm8150-perf_defconfig \
             arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
             arch/arm64/configs/vendor/xiaomi/cepheus.config
+            audio_extra.config
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
