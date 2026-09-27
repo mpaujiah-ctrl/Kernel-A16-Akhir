@@ -44,6 +44,17 @@ jobs:
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
     
+    - name: Buat fragment config KSU + SUSFS
+      working-directory: kernel
+      run: |
+        cat > audio_extra.config << 'EOF'
+        CONFIG_SND_SOC_TAS256X=n
+        CONFIG_TAS256X_CODEC=n
+        CONFIG_TAS256X_REGMAP=n
+        CONFIG_TAS25XX_ALGO=n
+        EOF
+        cat audio_extra.config
+    
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
@@ -53,8 +64,9 @@ jobs:
             arch/arm64/configs/vendor/sm8150-perf_defconfig \
             arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
             arch/arm64/configs/vendor/xiaomi/cepheus.config
+            audio_extra.config
           make O=out ARCH=arm64 olddefconfig
-          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
+          grep -E "^CONFIG_(SND_SOC_TAS256X|TAS256X_CODEC|TAS256X_REGMAP|TAS25XX_ALGO|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
     - name: Update localversion
       working-directory: kernel
