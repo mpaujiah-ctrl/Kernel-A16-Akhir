@@ -43,7 +43,15 @@ jobs:
           fi
         done
         
-        rm -f scripts/dtc/dtc-lexer.lex.c_shipped scripts/dtc/dtc-parser.tab.c_shipped scripts/dtc/dtc-parser.tab.h_shipped
+        # generate ulang lexer & parser dari source .l/.y yang baru
+        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
+        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
+        
+        # sediakan juga versi _shipped-nya, jaga-jaga kalau Makefile masih nyari file itu
+        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
+        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
+        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
+        
         rm -rf /tmp/dtc-upstream
     
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
