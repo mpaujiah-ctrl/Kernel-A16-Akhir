@@ -105,6 +105,13 @@ jobs:
       run: |
           echo "=== Cek config TAS & Audio ==="
           grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934|PAHU|TAVIL" out/.config || true
+
+          echo "=== DAI name di sm8150.c ==="
+          grep -n "tas256x\|tas2557\|ASI1" techpack/audio/asoc/sm8150.c | head -30
+          
+          echo "=== Node amp di DT Cepheus ==="
+          grep -n -A15 -B5 "tas\|2557\|256x\|cdc-reset" \
+            arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/*.dtsi
           
           # Aktifkan yang biasanya dibutuhkan Cepheus
           scripts/config --file out/.config \
@@ -118,6 +125,8 @@ jobs:
           
           echo "=== Setelah enable ==="
           grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934" out/.config || true
+
+          
     
     - name: Build kernel
       working-directory: kernel
