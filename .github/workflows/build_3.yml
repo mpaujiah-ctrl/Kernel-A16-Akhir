@@ -92,6 +92,16 @@ jobs:
           grep -n "cdc-reset-gpio" \
             arch/arm64/boot/dts/qcom/xiaomi/overlay/cepheus/cepheus-sm8150.dtsi
     
+    - name: Fix duplicate Quaternary MI2S dai-link (sm8150.c)
+      working-directory: kernel
+      run: |
+          sed -i '6236,6270d' techpack/audio/asoc/sm8150.c
+          sed -i '/\.stream_name = "Voice Stub",/i\
+          /* Voice Stub */\
+          \t\t{\
+          \t\t\t.name = "Voice Stub",' techpack/audio/asoc/sm8150.c
+                grep -c "Quaternary MI2S_RX Hostless Playback" techpack/audio/asoc/sm8150.c
+    
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -106,7 +116,7 @@ jobs:
           export OBJCOPY=llvm-objcopy
           export OBJDUMP=llvm-objdump
           export STRIP=llvm-strip
-          scripts/config --file out/.config -d CONFIG_SND_SOC_TAS256X
+         
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
