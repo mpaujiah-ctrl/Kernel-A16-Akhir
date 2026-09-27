@@ -108,10 +108,10 @@ jobs:
           scripts/kconfig/merge_config.sh -O out \
             arch/arm64/configs/vendor/sm8150-perf_defconfig \
             arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
-            arch/arm64/configs/vendor/xiaomi/cepheus.config
+            arch/arm64/configs/vendor/xiaomi/cepheus.config \
             audio_extra.config
           make O=out ARCH=arm64 olddefconfig
-          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
+          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|SND_SOC_TAS256X|TAS256X_REGMAP|TAS25XX_ALGO|TAS256X_CODEC|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
     - name: Update localversion
       working-directory: kernel
