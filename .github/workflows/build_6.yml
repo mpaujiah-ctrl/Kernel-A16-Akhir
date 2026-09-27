@@ -27,30 +27,6 @@ jobs:
           sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
           grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
     
-    - name: Install flex dan bison
-      run: sudo apt-get update && sudo apt-get install -y flex bison
-    
-    - name: Ganti file logika dtc Jokerlee
-      working-directory: kernel
-      run: |
-        rm -rf /tmp/dtc-upstream
-        git clone --depth=1 -b v1.6.1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
-        
-        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
-          fname=$(basename "$f")
-          if [ -f "/tmp/dtc-upstream/$fname" ]; then
-            cp "/tmp/dtc-upstream/$fname" "$f"
-          fi
-        done
-        
-        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
-        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
-        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
-        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
-        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
-        
-        rm -rf /tmp/dtc-upstream
-    
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
           sudo apt update
@@ -71,8 +47,47 @@ jobs:
           echo "=== Verifikasi ==="
           toolchain/clang/bin/clang --version
 
-          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
+          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"
     
+    - name: Ganti dtc ke versi upstream + fix yamltree
+      working-directory: kernel
+      run: |
+        set -e
+    
+        # 1. Ambil source dtc dari upstream resmi
+        rm -rf /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
+    
+        # 2. Timpa file yang namanya cocok di scripts/dtc/
+        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
+          fname=$(basename "$f")
+          if [ -f "/tmp/dtc-upstream/$fname" ]; then
+            cp "/tmp/dtc-upstream/$fname" "$f"
+          fi
+        done
+        rm -rf /tmp/dtc-upstream
+    
+        # 3. Generate ulang lexer & parser (flex/bison sudah tersedia dari step Install toolchain)
+        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
+        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
+        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
+        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
+        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
+    
+        # 4. Stub yamltree.c (dtc.c upstream manggil dt_to_yaml, kernel lama nggak punya file ini)
+        cat > scripts/dtc/yamltree.c << 'CEOF'
+        #include <stdio.h>
+        #include <stdlib.h>
+    
+        struct dt_info;
+    
+        void dt_to_yaml(FILE *outf, struct dt_info *dti) {}
+        CEOF
+    
+        # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
+        sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
+        grep -A1 "dtc-objs" scripts/dtc/Makefile
+       
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
