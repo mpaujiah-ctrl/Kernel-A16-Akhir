@@ -7,7 +7,7 @@ env:
   KERNEL_SOURCE: "https://github.com/crdroidandroid/android_kernel_xiaomi_sm8150"
   KERNEL_BRANCH: "16.0"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
-  DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
+  DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/sm8150-common.config"
   KERNEL_ARCH: "arm64"
 
 jobs:
@@ -48,7 +48,7 @@ jobs:
           mkdir -p out
           scripts/kconfig/merge_config.sh -O out \
             arch/arm64/configs/vendor/sm8150-perf_defconfig \
-            arch/arm64/configs/vendor/xiaomi/cepheus.config
+            arch/arm64/configs/vendor/xiaomi/sm8150-common.config
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
