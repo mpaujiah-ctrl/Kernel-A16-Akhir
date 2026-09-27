@@ -93,10 +93,10 @@ jobs:
       working-directory: kernel
       run: |
         cat > audio_extra.config << 'EOF'
-        CONFIG_SND_SOC_TAS256X=n
-        CONFIG_TAS256X_CODEC=n
-        CONFIG_TAS256X_REGMAP=n
-        CONFIG_TAS25XX_ALGO=n
+        # CONFIG_SND_SOC_TAS256X is not set
+        # CONFIG_TAS256X_CODEC is not set
+        # CONFIG_TAS256X_REGMAP is not set
+        # CONFIG_TAS25XX_ALGO is not set
         EOF
         cat audio_extra.config
     
