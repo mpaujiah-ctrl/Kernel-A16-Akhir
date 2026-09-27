@@ -114,6 +114,7 @@ jobs:
             -d SND_SOC_TAS256X -d TAS256X_CODEC -d TAS256X_REGMAP -d TAS25XX_ALGO \
             --set-val LTO_NONE y
           make O=out ARCH=arm64 olddefconfig
+          grep -E "^CONFIG_(SND_SOC_TAS256X|TAS256X_CODEC|TAS256X_REGMAP|TAS25XX_ALGO)=" out/.config
     
     - name: Aktifkan SDCARD_FS
       working-directory: kernel
