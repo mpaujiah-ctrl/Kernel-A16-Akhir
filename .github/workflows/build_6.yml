@@ -56,7 +56,7 @@ jobs:
     
         # 1. Ambil source dtc dari upstream resmi
         rm -rf /tmp/dtc-upstream
-        git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/mpaujiah-ctrl/dtc_mainstream" /tmp/dtc-upstream
     
         # 2. Timpa file yang namanya cocok di scripts/dtc/
         for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
