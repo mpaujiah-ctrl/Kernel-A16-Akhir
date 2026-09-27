@@ -67,15 +67,13 @@ jobs:
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
     
-    - name: Ganti ke ThinLTO
+    - name: Matikan LTO total
       working-directory: kernel
       run: |
           scripts/config --file out/.config \
-            -d LTO_NONE \
-            -e LTO_CLANG \
-            -e THINLTO
+            -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
+            --set-val LTO_NONE y
           make O=out ARCH=arm64 olddefconfig
-          grep -E "^CONFIG_(LTO|THINLTO)" out/.config
     
     - name: Aktifkan SDCARD_FS
       working-directory: kernel
@@ -101,6 +99,25 @@ jobs:
           \t\t{\
           \t\t\t.name = "Voice Stub",' techpack/audio/asoc/sm8150.c
                 grep -c "Quaternary MI2S_RX Hostless Playback" techpack/audio/asoc/sm8150.c
+    
+    - name: Check & enable TAS / Audio configs
+      working-directory: kernel
+      run: |
+          echo "=== Cek config TAS & Audio ==="
+          grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934|PAHU|TAVIL" out/.config || true
+          
+          # Aktifkan yang biasanya dibutuhkan Cepheus
+          scripts/config --file out/.config \
+            -e SND_SOC_TAS2557 \
+            -e SND_SOC_TAS256X \
+            -e SND_SOC_WCD934X \
+            -e SND_SOC_WCD9XXX \
+            -e SND_SOC_SM8150
+          
+          make O=out ARCH=arm64 olddefconfig
+          
+          echo "=== Setelah enable ==="
+          grep -E "TAS2557|TAS256|SND_SOC_TAS|WCD934" out/.config || true
     
     - name: Build kernel
       working-directory: kernel
