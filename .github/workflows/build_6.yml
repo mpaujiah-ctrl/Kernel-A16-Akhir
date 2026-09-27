@@ -35,9 +35,14 @@ jobs:
       run: |
         rm -rf /tmp/dtc-upstream
         git clone --depth=1 "https://github.com/dgibson/dtc" /tmp/dtc-upstream
-        for f in checks.c dtc-lexer.l dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-          cp "/tmp/dtc-upstream/$f" "scripts/dtc/$f"
+        
+        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
+          fname=$(basename "$f")
+          if [ -f "/tmp/dtc-upstream/$fname" ]; then
+            cp "/tmp/dtc-upstream/$fname" "$f"
+          fi
         done
+        
         rm -f scripts/dtc/dtc-lexer.lex.c_shipped scripts/dtc/dtc-parser.tab.c_shipped scripts/dtc/dtc-parser.tab.h_shipped
         rm -rf /tmp/dtc-upstream
     
