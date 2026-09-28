@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
 
 env:
-  KERNEL_SOURCE: "https://github.com/crdroidandroid/android_kernel_xiaomi_sm8150"
+  KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/android_kernel_xiaomi_crdroid"
   KERNEL_BRANCH: "16.0"
-  BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150_defconfig"
+  BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
   DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/sm8150-common.config"
   KERNEL_ARCH: "arm64"
 
@@ -47,7 +47,7 @@ jobs:
           export ARCH=arm64
           mkdir -p out
           scripts/kconfig/merge_config.sh -O out \
-            arch/arm64/configs/vendor/sm8150_defconfig \
+            arch/arm64/configs/vendor/sm8150-perf_defconfig \
             arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
             arch/arm64/configs/vendor/xiaomi/cepheus.config
           make O=out ARCH=arm64 olddefconfig
