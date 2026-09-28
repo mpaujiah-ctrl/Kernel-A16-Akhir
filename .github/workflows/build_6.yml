@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 env:
-  KERNEL_SOURCE: "https://github.com/Evolution-X-Devices/kernel_xiaomi_cepheus"
+  KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/kernel_xiaomi_cepheus_EVOX"
   KERNEL_BRANCH: "bka"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
   DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
