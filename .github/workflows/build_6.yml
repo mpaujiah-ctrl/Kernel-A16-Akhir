@@ -100,6 +100,12 @@ jobs:
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
+    - name: Dump config SND final
+      working-directory: kernel
+      run: |
+          grep -E "^CONFIG_SND|^# CONFIG_SND.*is not set" out/.config > ../snd_final_$(basename $GITHUB_WORKFLOW | tr ' ' '_').txt
+          cat ../snd_final_*.txt
+    
     - name: Update localversion
       working-directory: kernel
       run: |
@@ -150,6 +156,12 @@ jobs:
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
           cd AnyKernel3 && zip -r9 ../cepheus_evox.zip * -x README
 
+    - name: Upload config dump
+      uses: actions/upload-artifact@v4
+      with:
+          name: snd-config-dump
+          path: snd_final_*.txt
+    
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
