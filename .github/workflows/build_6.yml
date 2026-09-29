@@ -95,8 +95,8 @@ jobs:
           mkdir -p out
           scripts/kconfig/merge_config.sh -O out \
             arch/arm64/configs/vendor/sm8150-perf_defconfig \
-            arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
-            arch/arm64/configs/vendor/xiaomi/cepheus.config
+            arch/arm64/configs/vendor/xiaomi/cepheus.config \
+            arch/arm64/configs/vendor/xiaomi/sm8150-common.config
           make O=out ARCH=arm64 olddefconfig
     
     - name: Update localversion
