@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  KERNEL_SOURCE: "https://github.com/xiaomi-sm8150-devs/android_kernel_xiaomi_sm8150"
+  KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/android_kernel_xiaomi_sm8150_DEVS"
   KERNEL_BRANCH: "lineage-23.2"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
   DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
@@ -87,19 +87,8 @@ jobs:
     
         # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
         sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
-        grep -A1 "dtc-objs" scripts/dtc/Makefile
-    
-    - name: Buat fragment config KSU + SUSFS
-      working-directory: kernel
-      run: |
-        cat > audio_extra.config << 'EOF'
-        # CONFIG_SND_SOC_TAS256X is not set
-        # CONFIG_TAS256X_CODEC is not set
-        # CONFIG_TAS256X_REGMAP is not set
-        # CONFIG_TAS25XX_ALGO is not set
-        EOF
-        cat audio_extra.config
-    
+        grep -A1 "dtc-objs" scripts/dtc/Makefile    
+       
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
       run: |
