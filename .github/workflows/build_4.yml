@@ -104,12 +104,10 @@ jobs:
                
           ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
-          ls out/arch/arm64/boot/dtbo.img
    
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cp kernel/out/arch/arm64/boot/dtbo.img dtbo.img
           cd AnyKernel3 && zip -r9 ../cepheus_CrDroid_340.zip * -x README
      
     - name: Upload hasil build
@@ -119,4 +117,3 @@ jobs:
           path: |
             cepheus_CrDroid_340.zip
             kernel/out/arch/arm64/boot/Image.gz-dtb
-            dtbo.img
