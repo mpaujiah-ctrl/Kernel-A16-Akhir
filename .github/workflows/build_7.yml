@@ -25,6 +25,7 @@ jobs:
       run: |
           sudo apt update
           sudo apt install -y bc bison flex libssl-dev libelf-dev build-essential gcc-aarch64-linux-gnu
+          sudo apt install -y gcc-arm-linux-gnueabi
 
           echo "=== Download clang-r563880c (AOSP resmi, cocok sama build string kernel yang jalan) via sparse git clone di commit spesifik ==="
           mkdir -p toolchain
@@ -69,6 +70,7 @@ jobs:
           export CC=clang
           export CLANG_TRIPLE=aarch64-linux-gnu-
           export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           export LD=ld.lld
           export AR=llvm-ar
           export NM=llvm-nm
