@@ -6,9 +6,8 @@ on:
 env:
   KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/kernel_xiaomi_cepheus_PixelOS"
   KERNEL_BRANCH: "sixteen"
-  BASE_DEFCONFIG: "vendor/sm8150-perf_defconfig"
-  DEVICE_FRAGMENT1: "vendor/xiaomi/cepheus.config"
-  DEVICE_FRAGMENT2: "vendor/xiaomi/sm8150-common.config"
+  BASE_DEFCONFIG: "cepheus_defconfig"
+  DEVICE_FRAGMENT1: "vendor/sm8150-perf_defconfig" 
   KERNEL_ARCH: "arm64"
 
 jobs:
@@ -52,8 +51,7 @@ jobs:
           mkdir -p out
           scripts/kconfig/merge_config.sh -O out \
             "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}" \
-            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT1 }}" \
-            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT2 }}"
+            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT1 }}"          
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
