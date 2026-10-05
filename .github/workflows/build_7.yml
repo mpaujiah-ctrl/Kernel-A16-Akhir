@@ -1,13 +1,14 @@
-name: Build Kernel Cepheus A16 Jokerlee PIN
+name: Build Kernel Cepheus A16 POSS
 
 on:
   workflow_dispatch:
 
 env:
-  KERNEL_SOURCE: "https://github.com/JoK3rLeE/android_kernel_xiaomi_sm8150"
-  KERNEL_BRANCH: "17.0-cepheus"
+  KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/kernel_xiaomi_cepheus_PixelOS"
+  KERNEL_BRANCH: "sixteen"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
-  DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
+  DEVICE_FRAGMENT1: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
+  DEVICE_FRAGMENT2: "arch/arm64/configs/vendor/xiaomi/sm8150-common.config"
   KERNEL_ARCH: "arm64"
 
 jobs:
@@ -18,29 +19,9 @@ jobs:
     - name: Checkout Kernel Sendiri
       uses: actions/checkout@v4
     
-    - name: Clone kernel source (commit persis kernel yang jalan)
+    - name: Clone kernel source
       run: |
-          git init kernel
-          cd kernel
-          git remote add origin https://github.com/JoK3rLeE/android_kernel_xiaomi_sm8150
-          git fetch --depth=1 origin 683b437c39781770eeb9e916ee365848e73ae6a1
-          git checkout FETCH_HEAD
-    
-    - name: Keluarin device andromeda yang dtsi-nya syntax error (bukan device kita, ikut ke-build bareng karena CONFIG_BUILD_ARM64_DT_OVERLAY)
-      working-directory: kernel
-      run: |
-          sed -i '/andromeda-sm8150/d' arch/arm64/boot/dts/qcom/Makefile
-          grep -c "andromeda-sm8150" arch/arm64/boot/dts/qcom/Makefile || echo "[+] andromeda sudah dikeluarkan dari daftar build."
-    
-    - name: Ganti file logika dtc dengan versi dari 16.0-cepheus (dtc 17.0-cepheus gagal parse plugin/overlay &label{})
-      working-directory: kernel
-      run: |
-          rm -rf /tmp/dtc16
-          git clone --depth=1 -b 16.0-cepheus "${{ env.KERNEL_SOURCE }}" /tmp/dtc16
-          for f in checks.c dtc-lexer.l dtc-lexer.lex.c_shipped dtc-parser.tab.c_shipped dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-            cp "/tmp/dtc16/scripts/dtc/$f" "scripts/dtc/$f"
-          done
-          rm -rf /tmp/dtc16
+          git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel       
     
     - name: Install toolchain (Clang 21 / r563880c - PERSIS sama kayak kernel yang lagi jalan di device)
       run: |
@@ -70,22 +51,22 @@ jobs:
           export ARCH=arm64
           mkdir -p out
           scripts/kconfig/merge_config.sh -O out \
-            arch/arm64/configs/vendor/sm8150-perf_defconfig \
-            arch/arm64/configs/vendor/xiaomi/sm8150-common.config \
-            arch/arm64/configs/vendor/xiaomi/cepheus.config
+            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}" \
+            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT1 }}" \
+            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT2 }}"
           make O=out ARCH=arm64 olddefconfig
           grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
     
     - name: Update localversion
       working-directory: kernel
       run: |
-          sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-DRAGON"/' out/.config
+          sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-POSS"/' out/.config
           grep "CONFIG_LOCALVERSION" out/.config
     
     - name: Clone AnyKernel3
       run: |
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3
-          echo "=== Ganti anykernel.sh & ak3-core.sh bawaan (generic, buat OMAP/tuna) dengan punya InfiniR (proven working buat cepheus) ==="
+          echo "=== Ganti anykernel.sh & ak3-core.sh ==="
           cp anykernel.sh AnyKernel3/anykernel.sh
           cp ak3-core.sh AnyKernel3/tools/ak3-core.sh
           cat AnyKernel3/anykernel.sh
@@ -116,11 +97,11 @@ jobs:
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cd AnyKernel3 && zip -r9 ../cepheus_kernel.zip * -x README
+          cd AnyKernel3 && zip -r9 ../cepheus_POSS.zip * -x README
 
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
-          name: cepheus-kernel
+          name: cepheus-POSS
           path: |
-            cepheus_kernel.zip 
+            cepheus_POSS.zip 
