@@ -45,15 +45,44 @@ jobs:
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
     
-    - name: Ganti file logika dtc
+    - name: Ganti dtc ke versi upstream + fix yamltree
       working-directory: kernel
       run: |
-          rm -rf /tmp/dtc16
-          git clone --depth=1 -b main "https://github.com/mpaujiah-ctrl/dtc_mainstream" /tmp/dtc16
-          for f in checks.c dtc-lexer.l dtc-lexer.lex.c_shipped dtc-parser.tab.c_shipped dtc-parser.y dtc.c dtc.h flattree.c livetree.c srcpos.c srcpos.h util.h; do
-            cp "/tmp/dtc16/scripts/dtc/$f" "scripts/dtc/$f"
-          done
-          rm -rf /tmp/dtc16
+        set -e
+    
+        # 1. Ambil source dtc dari upstream resmi
+        rm -rf /tmp/dtc-upstream
+        git clone --depth=1 "https://github.com/mpaujiah-ctrl/dtc_mainstream" /tmp/dtc-upstream
+    
+        # 2. Timpa file yang namanya cocok di scripts/dtc/
+        for f in scripts/dtc/*.c scripts/dtc/*.h scripts/dtc/*.l scripts/dtc/*.y; do
+          fname=$(basename "$f")
+          if [ -f "/tmp/dtc-upstream/$fname" ]; then
+            cp "/tmp/dtc-upstream/$fname" "$f"
+          fi
+        done
+        rm -rf /tmp/dtc-upstream
+    
+        # 3. Generate ulang lexer & parser (flex/bison sudah tersedia dari step Install toolchain)
+        flex -o scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.l
+        bison -d -o scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.y
+        cp scripts/dtc/dtc-lexer.lex.c scripts/dtc/dtc-lexer.lex.c_shipped
+        cp scripts/dtc/dtc-parser.tab.c scripts/dtc/dtc-parser.tab.c_shipped
+        cp scripts/dtc/dtc-parser.tab.h scripts/dtc/dtc-parser.tab.h_shipped
+    
+        # 4. Stub yamltree.c (dtc.c upstream manggil dt_to_yaml, kernel lama nggak punya file ini)
+        cat > scripts/dtc/yamltree.c << 'CEOF'
+        #include <stdio.h>
+        #include <stdlib.h>
+    
+        struct dt_info;
+    
+        void dt_to_yaml(FILE *outf, struct dt_info *dti) {}
+        CEOF
+    
+        # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
+        sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
+        grep -A1 "dtc-objs" scripts/dtc/Makefile
            
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
@@ -65,7 +94,7 @@ jobs:
             "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT1 }}" \
             "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.DEVICE_FRAGMENT2 }}"
           make O=out ARCH=arm64 olddefconfig
-          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LTO_NONE)=|^CONFIG_CMDLINE=" out/.config
+          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LOCAL_VERSION)=|^CONFIG_CMDLINE=" out/.config
     
     - name: Update localversion
       working-directory: kernel
