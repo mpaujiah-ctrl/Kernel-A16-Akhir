@@ -44,8 +44,7 @@ jobs:
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
         
-    - name: Update localversion
-      working-directory: kernel
+    - name: Update localversion      
       run: |
           sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-POSS"/' out/.config
           grep "CONFIG_LOCALVERSION" out/.config
