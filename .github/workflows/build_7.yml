@@ -8,6 +8,7 @@ env:
   KERNEL_BRANCH: "sixteen"
   BASE_DEFCONFIG: "cepheus_defconfig"
   KERNEL_ARCH: "arm64"
+  LOCALVERSION: "-POSS"
 
 jobs:
   build:
@@ -43,11 +44,13 @@ jobs:
           toolchain/clang/bin/clang --version
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
-        
-    - name: Update localversion      
+           
+    - name: Update localversion
+      working-directory: kernel
       run: |
-          sed -i 's/CONFIG_LOCALVERSION=".*"/CONFIG_LOCALVERSION="-POSS"/' out/.config
-          grep "CONFIG_LOCALVERSION" out/.config
+          DEFCONFIG="arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}"
+          sed -i 'CONFIG_LOCALVERSION="-POSS"/' "$DEFCONFIG"
+          grep "CONFIG_LOCALVERSION" "$DEFCONFIG"
     
     - name: Clone AnyKernel3
       run: |
