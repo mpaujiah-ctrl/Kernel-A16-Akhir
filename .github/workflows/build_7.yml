@@ -45,6 +45,16 @@ jobs:
 
           echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
            
+    - name: Merge defconfig (persis seperti ROM)
+      working-directory: kernel
+      run: |
+          export ARCH=arm64
+          mkdir -p out
+          scripts/kconfig/merge_config.sh -O out \
+            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}"          
+          make O=out ARCH=arm64 olddefconfig
+          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LOCAL_VERSION)=|^CONFIG_CMDLINE=" out/.config
+    
     - name: Update localversion
       working-directory: kernel
       run: |
