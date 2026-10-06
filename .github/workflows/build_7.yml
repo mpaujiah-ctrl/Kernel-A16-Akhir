@@ -49,7 +49,7 @@ jobs:
       working-directory: kernel
       run: |
           DEFCONFIG="arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}"
-          sed -i 'CONFIG_LOCALVERSION="-POSS"/' "$DEFCONFIG"
+          
           grep "CONFIG_LOCALVERSION" "$DEFCONFIG"
     
     - name: Clone AnyKernel3
