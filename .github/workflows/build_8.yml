@@ -82,7 +82,7 @@ jobs:
     
         # 5. Daftarkan yamltree.o supaya ikut ke-compile & ke-link
         sed -i 's/srcpos\.o checks\.o util\.o/srcpos.o checks.o util.o yamltree.o/' scripts/dtc/Makefile
-        grep -A1 "dtc-objs" scripts/dt
+        grep -A1 "dtc-objs" scripts/dtc/Makefile  
     
     - name: Merge defconfig (persis seperti ROM)
       working-directory: kernel
