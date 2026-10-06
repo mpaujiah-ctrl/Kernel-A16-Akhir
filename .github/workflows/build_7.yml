@@ -43,25 +43,8 @@ jobs:
           echo "=== Verifikasi ==="
           toolchain/clang/bin/clang --version
 
-          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV" 
-           
-    - name: Merge defconfig (persis seperti ROM)
-      working-directory: kernel
-      run: |
-          export ARCH=arm64
-          mkdir -p out
-          scripts/kconfig/merge_config.sh -O out \
-            "arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}"          
-          make O=out ARCH=arm64 olddefconfig
-          grep -E "^CONFIG_(KSU|KSU_MANUAL_HOOK|KSU_SUSFS|INITRAMFS_IGNORE_SKIP_FLAG|EROFS_FS|QCA_CLD_WLAN|LOCAL_VERSION)=|^CONFIG_CMDLINE=" out/.config
-    
-    - name: Update localversion
-      working-directory: kernel
-      run: |
-          DEFCONFIG="arch/${{ env.KERNEL_ARCH }}/configs/${{ env.BASE_DEFCONFIG }}"
-          
-          grep "CONFIG_LOCALVERSION" "$DEFCONFIG"
-    
+          echo "TOOLCHAIN_CLANG=$PWD/toolchain/clang/bin" >> "$GITHUB_ENV"    
+      
     - name: Clone AnyKernel3
       run: |
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3
@@ -86,7 +69,7 @@ jobs:
           export OBJDUMP=llvm-objdump
           export STRIP=llvm-strip
 
-          make O=out ARCH=arm64 olddefconfig
+          make O=out ARCH=arm64 "${{ env.BASE_DEFCONFIG }}"
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
                -j"$(nproc --all)" Image.gz-dtb
