@@ -116,6 +116,7 @@ jobs:
         scripts/config --file out/.config \
           -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
           --set-val LTO_NONE y
+          make O=out ARCH=arm64 olddefconfig
            
     - name: Build kernel
       working-directory: kernel
