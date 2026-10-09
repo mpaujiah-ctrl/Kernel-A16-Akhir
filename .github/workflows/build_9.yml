@@ -5,7 +5,7 @@ on:
 
 env:
   KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/android_kernel_xiaomi_crdroid"
-  KERNEL_BRANCH: "17-exp"
+  KERNEL_BRANCH: "17.0-exp"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
   DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
   COMMON_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/sm8150-common.config"
