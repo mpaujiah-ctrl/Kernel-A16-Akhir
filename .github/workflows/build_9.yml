@@ -1,11 +1,11 @@
-name: Build Kernel Cepheus A17 Jokerlee
+name: Build Kernel Cepheus A17 ku
 
 on:
   workflow_dispatch:
 
 env:
-  KERNEL_SOURCE: "https://github.com/JoK3rLeE/android_kernel_xiaomi_sm8150"
-  KERNEL_BRANCH: "17-dev"
+  KERNEL_SOURCE: "https://github.com/mpaujiah-ctrl/android_kernel_xiaomi_crdroid"
+  KERNEL_BRANCH: "17-exp"
   BASE_DEFCONFIG: "arch/arm64/configs/vendor/sm8150-perf_defconfig"
   DEVICE_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/cepheus.config"
   COMMON_FRAGMENT: "arch/arm64/configs/vendor/xiaomi/sm8150-common.config"
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout Kernel Sendiri
       uses: actions/checkout@v4
     
-    - name: Clone kernel source (JoK3rLeE, ikut update branch)
+    - name: Clone kernel source
       run: |
           git clone --depth=1 -b "${{ env.KERNEL_BRANCH }}" "${{ env.KERNEL_SOURCE }}" kernel
          
@@ -116,8 +116,7 @@ jobs:
         scripts/config --file out/.config \
           -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
           --set-val LTO_NONE y
-        make O=out ARCH=arm64 olddefconfig
-    
+           
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -142,11 +141,11 @@ jobs:
     - name: Pack AnyKernel3
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
-          cd AnyKernel3 && zip -r9 ../cepheus_A17_Jok3rlee.zip * -x README
+          cd AnyKernel3 && zip -r9 ../cepheus_A17_ku.zip * -x README
 
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
       with:
-          name: cepheus-A17-Jok3rlee
+          name: cepheus-A17-ku
           path: |
-            cepheus_A17_Jok3rlee.zip 
+            cepheus_A17_ku.zip 
