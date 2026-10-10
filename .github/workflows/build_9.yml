@@ -1,4 +1,4 @@
-name: Build Kernel Cepheus A16 Crdroid 340
+name: Build Kernel Cepheus A16 RIJEK 341
 
 on:
   workflow_dispatch:
