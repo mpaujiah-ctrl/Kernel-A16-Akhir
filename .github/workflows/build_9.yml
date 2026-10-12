@@ -94,7 +94,6 @@ jobs:
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
                -j"$(nproc --all)" Image.gz-dtb
                
-          ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
    
     - name: Pack AnyKernel3
