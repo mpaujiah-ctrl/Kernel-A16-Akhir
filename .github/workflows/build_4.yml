@@ -74,14 +74,7 @@ jobs:
             -d LTO_CLANG -d CFI_CLANG -d CFI_CLANG_SHADOW \
             --set-val LTO_NONE y
           make O=out ARCH=arm64 olddefconfig
-    
-    - name: Aktifkan SDCARD_FS
-      working-directory: kernel
-      run: |
-          scripts/config --file out/.config -e SDCARD_FS
-          make O=out ARCH=arm64 olddefconfig
-          grep SDCARD_FS out/.config    
-        
+           
     - name: Build kernel
       working-directory: kernel
       run: |
@@ -100,9 +93,8 @@ jobs:
           make O=out ARCH=arm64 olddefconfig
           make ARCH=arm64 O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- \
                LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-               -j"$(nproc --all)" Image.gz-dtb dtbo.img
+               -j"$(nproc --all)" Image.gz-dtb
                
-          ls out/arch/arm64/boot/Image.gz-dtb
           ls out/arch/arm64/boot/Image
    
     - name: Pack AnyKernel3
@@ -115,5 +107,4 @@ jobs:
       with:
           name: cepheus-CrDroid-340
           path: |
-            cepheus_CrDroid_340.zip
-            kernel/out/arch/arm64/boot/Image.gz-dtb
+            cepheus_CrDroid_340.zip            
