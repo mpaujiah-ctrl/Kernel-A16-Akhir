@@ -106,5 +106,4 @@ jobs:
       with:
           name: cepheus-RIJEK-341
           path: |
-            cepheus_RIJEK_341.zip
-            kernel/out/arch/arm64/boot/Image.gz-dtb
+            cepheus_RIJEK_341.zip           
