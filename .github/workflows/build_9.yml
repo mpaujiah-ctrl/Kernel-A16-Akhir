@@ -101,7 +101,6 @@ jobs:
       run: |
           cp kernel/out/arch/arm64/boot/Image.gz-dtb AnyKernel3/
           cd AnyKernel3 && zip -r9 ../cepheus_RIJEK_342.zip * -x README
-          find "$PACKAGE" -name "*.zip" -delete
      
     - name: Upload hasil build
       uses: actions/upload-artifact@v4
